@@ -13,7 +13,7 @@ const validateSession = async (req, res, next) => {
       );
 
       if (findUser.rowCount == 0) {
-        res.status(404).send("User not found");
+        res.status(422).send("User not found");
         return;
       }
 
@@ -23,7 +23,7 @@ const validateSession = async (req, res, next) => {
       return;
     }
 
-    res.sendStatus(404);
+    res.sendStatus(422);
   } catch (err) {
     res.status(500).send(err.message);
   }
