@@ -17,7 +17,7 @@ const validateSession = async (req, res, next) => {
         return;
       }
 
-      req.userId = findUser["rows"][0]["user-id"];
+      res.locals.userId = findUser["rows"][0]["user-id"];
 
       next();
       return;
