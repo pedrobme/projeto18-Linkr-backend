@@ -1,58 +1,42 @@
 import { connectionDB } from "../database/db.js";
+import createQueryPiece from "../utils/createQueriesPieces.js";
 
 const publishPost = async (req, res) => {
   const userId = res.locals.userId;
   const hashtags = res.locals.hashtags;
   const { text, url } = req.body;
-  const date = Date.now();
 
   try {
     const insertedPost = await connectionDB.query(
-      'INSERT INTO posts ("user-id", date, text, url) VALUES ($1,$2,$3,$4) RETURNING id',
-      [userId, date, text.toString(), url]
+      'INSERT INTO posts ("user-id", date, text, url) VALUES ($1,NOW(),$2,$3) RETURNING id',
+      [userId, text.toString(), url]
     );
 
     if (hashtags) {
-      let queryPiece = "";
+      const { postQueryPiece, middleTableQueryPiece } =
+        createQueryPiece(hashtags);
 
-      hashtags.forEach((value, index) => {
-        queryPiece += ` ($${index + 1}),`;
-      });
-
-      queryPiece = queryPiece.substring(0, queryPiece.length - 1);
+      console.log(hashtags);
+      console.log(postQueryPiece);
+      console.log(middleTableQueryPiece);
 
       const hashtagsQuery =
         "INSERT INTO hashtags (name) VALUES" +
-        queryPiece +
+        postQueryPiece +
         " ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name RETURNING id";
 
       console.log(hashtagsQuery);
-      console.log(hashtags);
 
       const insertedHashtags = await connectionDB.query(
         hashtagsQuery,
         hashtags
       );
-      console.log(insertedHashtags.rows);
 
       const middleTableQueryValues = insertedHashtags.rows.map((hashtagObj) => {
         return hashtagObj.id;
       });
 
       middleTableQueryValues.push(insertedPost.rows[0].id);
-
-      console.log(middleTableQueryValues);
-
-      let middleTableQueryPiece = "";
-
-      hashtags.forEach((value, index) => {
-        middleTableQueryPiece += ` ($${hashtags.length + 1}, $${index + 1}),`;
-      });
-
-      middleTableQueryPiece = middleTableQueryPiece.substring(
-        0,
-        middleTableQueryPiece.length - 1
-      );
 
       const middleTableQuery =
         'INSERT INTO "posts-hashtags" ("post-id", "hashtag-id") VALUES' +
@@ -63,11 +47,10 @@ const publishPost = async (req, res) => {
       await connectionDB.query(middleTableQuery, middleTableQueryValues);
     }
 
-    res
-      .status(201)
-      .send({ "user-Id": userId, date: date, text: text.toString(), url: url });
+    res.status(201).send(insertedPost.rows[0]);
   } catch (err) {
-    res.status(500).send(err.message);
+    console.log(err);
+    res.status(500).send("uncaught error");
   }
 };
 
