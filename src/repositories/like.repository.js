@@ -12,10 +12,15 @@ async function deleteLike (postId, userId) {
     return connectionDB.query(`DELETE FROM "users-like-posts" WHERE "users-like-posts"."post-id" = $1 AND "users-like-posts"."user-id"  = $2;`, [postId, userId])
 }
 
+async function getLikes (postId) {
+    return connectionDB.query(`SELECT "users-like-posts"."user-id", users.username as "name" FROM "users-like-posts" JOIN users ON "users-like-posts"."user-id" = users.id WHERE "users-like-posts"."post-id" = $1;`, [postId])
+}
+
 const likeRepository = {
     postLikeUser,
     verifyLike,
-    deleteLike
+    deleteLike,
+    getLikes
 }
 
 export default likeRepository

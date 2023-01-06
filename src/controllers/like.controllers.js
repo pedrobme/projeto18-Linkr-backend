@@ -44,3 +44,19 @@ export async function deleteLike (req, res) {
         res.status(400).send(error.message)
     }
 }
+
+export async function getLikes (req, res) {
+    const postId = req.params.postid
+
+    const userId = res.locals.userId
+
+    try {
+        const likes = await likeRepository.getLikes(postId)
+
+        const obj = { data: likes.rows, userId: userId}
+
+        res.status(200).send(obj)
+    } catch (error) {
+        res.status(400).send(error.message)
+    }
+}
