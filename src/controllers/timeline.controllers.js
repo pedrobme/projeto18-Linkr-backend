@@ -14,7 +14,7 @@ export async function loadPost(req, res) {
         SELECT username, posts.id, image, date, text, url 
         FROM posts 
         JOIN users ON posts."user-id" = users.id 
-        ORDER BY date LIMIT 20;
+        ORDER BY date DESC LIMIT 20;
         `)
 
         const arr = await Promise.all(postsExists.rows.map( async (obj) => {
@@ -52,5 +52,3 @@ export async function loadPost(req, res) {
 
 
 }
-
-
