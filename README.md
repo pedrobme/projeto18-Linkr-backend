@@ -5,7 +5,7 @@
   Receive object by req.body with that object format:
   
     {
-    "name": "<string>",
+    "text": "<string>",
     "url": "<valid uri>" (required)
     }
   
