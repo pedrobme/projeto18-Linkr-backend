@@ -20,5 +20,5 @@ app.use(timelineRoute);
 app.use(publishPostRoute);
 app.use(likeRoute)
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, console.log(`Server running at port ${PORT}`));
