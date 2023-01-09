@@ -1,10 +1,11 @@
 import { Router } from "express";
 
-import { loadPost,searchUsers, goToClickUser } from "../controllers/timeline.controllers.js";
 import {
   deletePost,
   editPost,
   loadPost,
+  goToClickUser,
+  searchUsers,
 } from "../controllers/timeline.controllers.js";
 
 const router = Router();
@@ -15,8 +16,8 @@ router.delete("/timeline/:postId", deletePost);
 
 router.patch("/timeline/:postId", editPost);
 
-router.get('/user/:id', goToClickUser);
+router.get("/user/:id", goToClickUser);
 
-router.post('/search', searchUsers);
+router.post("/search", searchUsers);
 
 export default router;
