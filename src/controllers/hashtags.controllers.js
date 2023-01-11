@@ -10,8 +10,6 @@ export async function trendingHashtags (req, res) {
     } catch (error) {
         res.status(400).send(error.message)
     }
-    
-
 }
 
 export async function specificHashtag (req, res){
