@@ -26,3 +26,27 @@ export async function signin(req, res) {
 
   res.sendStatus(401);
 }
+
+export async function signOut(req, res) {
+
+  const {token} = req.body;
+  console.log(token);
+
+  try{
+    const deleteSession = await connectionDB.query(`
+    DELETE FROM sessions 
+    WHERE token = $1`, [token]);
+
+    res.status(201).send(deleteSession.rows);
+
+  }catch(err){
+
+    /* console.log(err); */
+    res.status(500).send("Unexpected Error");
+  }
+
+
+  
+
+
+}
