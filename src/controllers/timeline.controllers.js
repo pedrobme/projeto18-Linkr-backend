@@ -2,11 +2,7 @@ import { connectionDB } from "../database/db.js";
 import urlMetadata from "url-metadata";
 
 
-
 export async function loadPost(req, res) {
-
-
-    
 
     try {
         

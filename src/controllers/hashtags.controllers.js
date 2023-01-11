@@ -36,7 +36,7 @@ export async function specificHashtag (req, res){
                 function (error) {
                     console.log(error)
                 })
-                console.log(objectNew)
+               /*  console.log(objectNew) */
 
             return objectNew;
 
