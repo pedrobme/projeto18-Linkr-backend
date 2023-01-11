@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
-import {connectionDB} from "../database/db.js";
+import { connectionDB } from "../database/db.js";
 
 export async function signin(req, res) {
   const { email, password } = req.body;
@@ -25,4 +25,20 @@ export async function signin(req, res) {
   }
 
   res.sendStatus(401);
+}
+
+export async function getUserInfo(req, res) {
+  const userId = res.locals.userId;
+
+  try {
+    const response = await connectionDB.query(
+      "SELECT username,image FROM users WHERE id=$1",
+      [userId]
+    );
+
+    res.status(200).send(response.rows);
+  } catch (err) {
+    console.log("getUserInfo error:", err);
+    res.status(500).send("Unexpected Error");
+  }
 }
