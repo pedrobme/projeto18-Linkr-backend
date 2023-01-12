@@ -1,9 +1,12 @@
 import { connectionDB } from "../database/db.js";
 import urlMetadata from "url-metadata";
 
+
 export async function loadPost(req, res) {
-  try {
-    const postsExists = await connectionDB.query(`
+
+    try {
+        
+        const postsExists = await connectionDB.query(`
         SELECT username, posts.id, image, date, text, url 
         FROM posts 
         JOIN users ON posts."user-id" = users.id 
@@ -89,6 +92,7 @@ export async function searchUsers(req, res){
     try{
         const resp = await connectionDB.query(`
         SELECT 
+            id,
             username,
             image
         FROM users
@@ -105,35 +109,42 @@ export async function searchUsers(req, res){
 
 export async function goToClickUser(req, res){
     const id = req.params.id;
+   
+    try {
+      const postsExists = await connectionDB.query(`
+          SELECT posts."user-id" AS "useId", username, posts.id, image, date, text, url 
+          FROM posts 
+          JOIN users ON posts."user-id" = users.id 
+          WHERE posts."user-id" = $1
+          ORDER BY date 
+          `,[id]);
   
-     try{
-       const userClicked = await connectionDB.query(`
-         SELECT
-            username,
-            image,
-            text,
-            url,
-            hashtags.name AS name
-        FROM posts
-        JOIN users ON posts."user-id" = users.id
-        JOIN "posts-hashtags" ON posts.id = "posts-hashtags"."post-id"
-        JOIN hashtags ON "posts-hashtags"."hashtag-id" =  hashtags.id
-        WHERE users.id = 1
-        ORDER BY date 
-       `,[id])
+      const arr = await Promise.all(
+        postsExists.rows.map(async (obj) => {
+          let objectNew = { ...obj };
   
-       if(!userClicked){
-        res.sendStatus(500)
-       }   
+          const metaDatasUrl = await urlMetadata(obj.url).then(
+            function (metadata) {
+              /* console.log(metadata.title); */
+              objectNew.titleUrl = metadata.title;
+              objectNew.imageUrl = metadata.image;
+              objectNew.descriptionUrl = metadata.description;
+            },
+            function (error) {
+              console.log(error);
+            }
+          );
+          console.log(objectNew);
   
-       res.send(userClicked.rows)
-  
-     }catch(error){
-  
-      coconsole.log(error);
-  
-      return res.status(500).send(error.message);
-  
-     }
-  
-  }
+          return objectNew;
+        })
+      );
+      console.log('Aqui no goToClickUser',id,arr)
+        
+      res.send(arr);
+    } catch (err) {
+      console.log(err.message);
+    }
+
+
+}
