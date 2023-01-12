@@ -4,7 +4,11 @@ import createQueryPiece from "../utils/createQueriesPieces.js";
 const publishPost = async (req, res) => {
   const userId = res.locals.userId;
   const hashtags = res.locals.hashtags;
-  const { text, url } = req.body;
+  let { text, url } = req.body;
+
+  if (!text) {
+    text = "";
+  }
 
   try {
     const insertedPost = await connectionDB.query(
