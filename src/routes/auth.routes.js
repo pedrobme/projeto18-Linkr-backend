@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { signin } from "../controllers/auth.controllers.js";
+import { signin, signOut } from "../controllers/auth.controllers.js";
 import { createUser } from "../controllers/users.controllers.js";
 import { validateSchema } from "../middleware/schemaValidate.js";
 import loginSchema from "../models/loginSchema.js";
@@ -9,5 +9,6 @@ const router = Router();
 
 router.post("/signup", validateSchema(userSchema), createUser);
 router.post("/signin", validateSchema(loginSchema), signin);
+router.delete("/signout", signOut);
 
 export default router;

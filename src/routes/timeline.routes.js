@@ -20,4 +20,5 @@ router.get("/user/:id", goToClickUser);
 
 router.post("/search", searchUsers);
 
+
 export default router;

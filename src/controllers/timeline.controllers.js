@@ -1,9 +1,12 @@
 import { connectionDB } from "../database/db.js";
 import urlMetadata from "url-metadata";
 
+
 export async function loadPost(req, res) {
-  try {
-    const postsExists = await connectionDB.query(`
+
+    try {
+        
+        const postsExists = await connectionDB.query(`
         SELECT username, posts.id, image, date, text, url 
         FROM posts 
         JOIN users ON posts."user-id" = users.id 
@@ -142,5 +145,6 @@ export async function goToClickUser(req, res){
     } catch (err) {
       console.log(err.message);
     }
-  
-  }
+
+
+}
