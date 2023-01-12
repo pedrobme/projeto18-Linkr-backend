@@ -7,7 +7,7 @@ export async function loadPost(req, res) {
     try {
         
         const postsExists = await connectionDB.query(`
-        SELECT username, posts.id, image, date, text, url 
+        SELECT posts."user-id" AS "usersId" , username, posts.id, image, date, text, url 
         FROM posts 
         JOIN users ON posts."user-id" = users.id 
         ORDER BY date DESC LIMIT 20;
