@@ -2,6 +2,8 @@ import { connectionDB } from "../database/db.js";
 import urlMetadata from "url-metadata";
 
 export async function loadPost(req, res) {
+  const page = req.query.page || 0; 
+  const offSet = page*10;
   const userId = res.locals.userId;
 
   try {
@@ -18,10 +20,10 @@ export async function loadPost(req, res) {
       JOIN users ON users.id = "posts-reposts"."user-id"
       JOIN posts ON "posts-reposts"."post-id"=posts.id OR "posts-reposts"."reposted-post-id"=posts.id
       WHERE EXISTS (SELECT FROM followers WHERE followers."user-id"=$1 AND followers."followed-id"="posts-reposts"."user-id")
-      ORDER BY date DESC LIMIT 20;
+      ORDER BY date DESC OFFSET $2 LIMIT 10;
 
         `,
-      [userId]
+      [userId, offSet]
     );
 
     const arr = await Promise.all(
@@ -112,7 +114,7 @@ export async function searchUsers(req, res) {
         `,
       [`%${querys}%`]
     );
-    console.log(resp.rows, "a seguir as querys =>", querys);
+    /* console.log(resp.rows, "r as querys =>", querys); */
     res.send(resp.rows);
   } catch (error) {
     console.log(error);

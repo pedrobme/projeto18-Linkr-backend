@@ -25,7 +25,7 @@ const validateSession = async (req, res, next) => {
 
     res.sendStatus(422);
   } catch (err) {
-    res.status(500).send(err.message);
+    res.status(501).send(err.message);
   }
 };
 
