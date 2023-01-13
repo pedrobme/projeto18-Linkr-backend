@@ -8,6 +8,8 @@ import hashtagRoute from "./routes/hashtags.routes.js";
 import timelineRoute from "./routes/timeline.routes.js";
 import publishPostRoute from "./routes/publishPost.routes.js";
 import likeRoute from "./routes/like.routes.js";
+import commentRoutes from './routes/comments.routes.js'
+import followersRoute from "./routes/followers.routes.js";
 
 const app = express();
 app.use(express.json());
@@ -19,6 +21,8 @@ app.use(hashtagRoute);
 app.use(timelineRoute);
 app.use(publishPostRoute);
 app.use(likeRoute);
+app.use(commentRoutes);
+app.use(followersRoute);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, console.log(`Server running at port ${PORT}`));
