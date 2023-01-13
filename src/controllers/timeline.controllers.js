@@ -8,17 +8,18 @@ export async function loadPost(req, res) {
     const postsExists = await connectionDB.query(
       `
       SELECT 
-        "posts-reposts"."post-id", "posts-reposts"."user-id", "posts-reposts"."repost-id", "posts-reposts"."date", users.username, users.image, posts.text, posts.url 
+        "posts-reposts"."post-id", "posts-reposts"."user-id", "posts-reposts"."reposted-post-id", "posts-reposts"."post-creator-name", "posts-reposts"."date", users.image, posts.text, posts.url 
       FROM 
         (
-		      (SELECT posts.id as "post-id", posts."user-id", NULL as "repost-id", posts.date FROM posts)
+		      (SELECT posts.id as "post-id", posts."user-id", NULL as "reposted-post-id", users.username as "post-creator-name", posts.date FROM posts JOIN users on posts."user-id"=users.id)
 	          UNION ALL
-		      (SELECT NULL as "post-id", reposts."user-id", reposts.id as "repost-id", reposts.date FROM reposts)
-	      )"posts-reposts"
+		      (SELECT NULL as "post-id", reposts."user-id", reposts."reposted-post-id" as "reposted-post-id", users.username as "post-creator-name", reposts.date FROM reposts JOIN posts ON reposts."reposted-post-id"=posts.id JOIN users ON posts."user-id"=users.id)
+	)"posts-reposts"
       JOIN users ON users.id = "posts-reposts"."user-id"
-      JOIN posts ON "posts-reposts"."post-id"=posts.id OR "posts-reposts"."repost-id"=posts.id
+      JOIN posts ON "posts-reposts"."post-id"=posts.id OR "posts-reposts"."reposted-post-id"=posts.id
       WHERE EXISTS (SELECT FROM followers WHERE followers."user-id"=$1 AND followers."followed-id"="posts-reposts"."user-id")
       ORDER BY date DESC LIMIT 20;
+
         `,
       [userId]
     );
@@ -126,15 +127,15 @@ export async function goToClickUser(req, res) {
     const postsExists = await connectionDB.query(
       `
       SELECT 
-        "posts-reposts"."post-id", "posts-reposts"."user-id", "posts-reposts"."repost-id", "posts-reposts"."date", users.username, users.image, posts.text, posts.url 
+        "posts-reposts"."post-id", "posts-reposts"."user-id", "posts-reposts"."reposted-post-id", "posts-reposts"."post-creator-name", "posts-reposts"."date", users.username, users.image, posts.text, posts.url 
       FROM 
         (
-		      (SELECT posts.id as "post-id", posts."user-id", NULL as "repost-id", posts.date FROM posts)
+		      (SELECT posts.id as "post-id", posts."user-id", NULL as "reposted-post-id", users.username as "post-creator-name", posts.date FROM posts JOIN users on posts."user-id"=users.id)
 	          UNION ALL
-		      (SELECT NULL as "post-id", reposts."user-id", reposts.id as "repost-id", reposts.date FROM reposts)
-	      )"posts-reposts"
+		      (SELECT NULL as "post-id", reposts."user-id", reposts."reposted-post-id" as "reposted-post-id", users.username as "post-creator-name", reposts.date FROM reposts JOIN posts ON reposts."reposted-post-id"=posts.id JOIN users ON posts."user-id"=users.id)
+	)"posts-reposts"
       JOIN users ON users.id = "posts-reposts"."user-id"
-      JOIN posts ON "posts-reposts"."post-id"=posts.id OR "posts-reposts"."repost-id"=posts.id
+      JOIN posts ON "posts-reposts"."post-id"=posts.id OR "posts-reposts"."reposted-post-id"=posts.id
       WHERE "posts-reposts"."user-id"=$1
       ORDER BY date DESC LIMIT 20;
         `,
