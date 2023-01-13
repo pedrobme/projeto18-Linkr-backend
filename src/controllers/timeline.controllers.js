@@ -1,17 +1,27 @@
 import { connectionDB } from "../database/db.js";
 import urlMetadata from "url-metadata";
 
-
 export async function loadPost(req, res) {
+  const userId = res.locals.userId;
 
-    try {
-        
-        const postsExists = await connectionDB.query(`
-        SELECT username, posts.id, image, date, text, url 
-        FROM posts 
-        JOIN users ON posts."user-id" = users.id 
-        ORDER BY date DESC LIMIT 20;
-        `);
+  try {
+    const postsExists = await connectionDB.query(
+      `
+      SELECT 
+        "posts-reposts"."post-id", "posts-reposts"."user-id", "posts-reposts"."repost-id", "posts-reposts"."date", users.username, users.image, posts.text, posts.url 
+      FROM 
+        (
+		      (SELECT posts.id as "post-id", posts."user-id", NULL as "repost-id", posts.date FROM posts)
+	          UNION ALL
+		      (SELECT NULL as "post-id", reposts."user-id", reposts.id as "repost-id", reposts.date FROM reposts)
+	      )"posts-reposts"
+      JOIN users ON users.id = "posts-reposts"."user-id"
+      JOIN posts ON "posts-reposts"."post-id"=posts.id OR "posts-reposts"."repost-id"=posts.id
+      WHERE EXISTS (SELECT FROM followers WHERE followers."user-id"=$1 AND followers."followed-id"="posts-reposts"."user-id")
+      ORDER BY date DESC LIMIT 20;
+        `,
+      [userId]
+    );
 
     const arr = await Promise.all(
       postsExists.rows.map(async (obj) => {
@@ -85,12 +95,12 @@ export async function editPost(req, res) {
   }
 }
 
-export async function searchUsers(req, res){
-    const querys = req.body.querys;
-    
+export async function searchUsers(req, res) {
+  const querys = req.body.querys;
 
-    try{
-        const resp = await connectionDB.query(`
+  try {
+    const resp = await connectionDB.query(
+      `
         SELECT 
             id,
             username,
@@ -98,53 +108,63 @@ export async function searchUsers(req, res){
         FROM users
         WHERE username
         LIKE $1
-        `,[`%${querys}%`])
-        console.log(resp.rows, 'a seguir as querys =>',querys);
-        res.send(resp.rows)
-    }catch(error){
-        console.log(error);
-        return res.status(500).send(error.message);
-    }
+        `,
+      [`%${querys}%`]
+    );
+    console.log(resp.rows, "a seguir as querys =>", querys);
+    res.send(resp.rows);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send(error.message);
+  }
 }
 
-export async function goToClickUser(req, res){
-    const id = req.params.id;
-   
-    try {
-      const postsExists = await connectionDB.query(`
-          SELECT posts."user-id" AS "useId", username, posts.id, image, date, text, url 
-          FROM posts 
-          JOIN users ON posts."user-id" = users.id 
-          WHERE posts."user-id" = $1
-          ORDER BY date 
-          `,[id]);
-  
-      const arr = await Promise.all(
-        postsExists.rows.map(async (obj) => {
-          let objectNew = { ...obj };
-  
-          const metaDatasUrl = await urlMetadata(obj.url).then(
-            function (metadata) {
-              /* console.log(metadata.title); */
-              objectNew.titleUrl = metadata.title;
-              objectNew.imageUrl = metadata.image;
-              objectNew.descriptionUrl = metadata.description;
-            },
-            function (error) {
-              console.log(error);
-            }
-          );
-          console.log(objectNew);
-  
-          return objectNew;
-        })
-      );
-      console.log('Aqui no goToClickUser',id,arr)
-        
-      res.send(arr);
-    } catch (err) {
-      console.log(err.message);
-    }
+export async function goToClickUser(req, res) {
+  const id = req.params.id;
 
+  try {
+    const postsExists = await connectionDB.query(
+      `
+      SELECT 
+        "posts-reposts"."post-id", "posts-reposts"."user-id", "posts-reposts"."repost-id", "posts-reposts"."date", users.username, users.image, posts.text, posts.url 
+      FROM 
+        (
+		      (SELECT posts.id as "post-id", posts."user-id", NULL as "repost-id", posts.date FROM posts)
+	          UNION ALL
+		      (SELECT NULL as "post-id", reposts."user-id", reposts.id as "repost-id", reposts.date FROM reposts)
+	      )"posts-reposts"
+      JOIN users ON users.id = "posts-reposts"."user-id"
+      JOIN posts ON "posts-reposts"."post-id"=posts.id OR "posts-reposts"."repost-id"=posts.id
+      WHERE "posts-reposts"."user-id"=$1
+      ORDER BY date DESC LIMIT 20;
+        `,
+      [id]
+    );
 
+    const arr = await Promise.all(
+      postsExists.rows.map(async (obj) => {
+        let objectNew = { ...obj };
+
+        const metaDatasUrl = await urlMetadata(obj.url).then(
+          function (metadata) {
+            /* console.log(metadata.title); */
+            objectNew.titleUrl = metadata.title;
+            objectNew.imageUrl = metadata.image;
+            objectNew.descriptionUrl = metadata.description;
+          },
+          function (error) {
+            console.log(error);
+          }
+        );
+        console.log(objectNew);
+
+        return objectNew;
+      })
+    );
+    console.log("Aqui no goToClickUser", id, arr);
+
+    res.send(arr);
+  } catch (err) {
+    console.log(err.message);
+  }
 }
